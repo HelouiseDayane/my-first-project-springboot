@@ -1,4 +1,4 @@
-package top.helouisedayane.my_first_project_springboot;
+package top.helouisedayane;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

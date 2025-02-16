@@ -1,4 +1,4 @@
-package top.helouisedayane.my_first_project_springboot;
+package top.helouisedayane;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
