@@ -3,104 +3,88 @@ package top.helouisedayane.controllers;
 import java.util.Arrays;
 
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-
 @RestController
 @RequestMapping("/math")
-public class MathController 
-{
+public class MathController {
 
-    @RequestMapping("/sum/{numberOne}/{numberTwo}")
-    public Double sum (
-        @PathVariable("numberOne") String numberOne,
-        @PathVariable("numberTwo") String numberTwo
-    ) throws Exception{
-        if(!isNumeric(numberOne) || !isNumeric(numberTwo)) throw new UnsupportedOperationException("Coloque um numero");
-        return Double.parseDouble(numberOne) + Double.parseDouble(numberTwo);   
+    // Soma de números em array
+    @GetMapping("/sum")
+    public Double sum(@RequestParam double[] numbers) throws Exception {
+        validateNumbers(numbers);
+        return Arrays.stream(numbers).sum();
     }
 
-
-    @RequestMapping("/sub/{numberOne}/{numberTwo}")
-    public Double sub (
-        @PathVariable("numberOne") String numberOne,
-        @PathVariable("numberTwo") String numberTwo
-    ) throws Exception{
-        if(!isNumeric(numberOne) || !isNumeric(numberTwo)) throw new UnsupportedOperationException("Coloque um numero");
-        return Double.parseDouble(numberOne) - Double.parseDouble(numberTwo);   
+    // Subtração de números em array
+    @GetMapping("/sub")
+    public Double sub(@RequestParam double[] numbers) throws Exception {
+        validateNumbers(numbers);
+        return Arrays.stream(numbers).reduce((a, b) -> a - b).orElseThrow(() -> new UnsupportedOperationException("Array vazio ou inválido"));
     }
 
-    @RequestMapping("/multiplication/{numberOne}/{numberTwo}")
-    public Double multiplication (
-        @PathVariable("numberOne") String numberOne,
-        @PathVariable("numberTwo") String numberTwo
-    ) throws Exception{
-        if(!isNumeric(numberOne) || !isNumeric(numberTwo)) throw new UnsupportedOperationException("Coloque um numero");
-        return Double.parseDouble(numberOne) * Double.parseDouble(numberTwo);   
+    // Multiplicação de números em array
+    @GetMapping("/multiplication")
+    public Double multiplication(@RequestParam double[] numbers) throws Exception {
+        validateNumbers(numbers);
+        return Arrays.stream(numbers).reduce(1.0, (a, b) -> a * b);
     }
 
-    @RequestMapping("/div/{numberOne}/{numberTwo}")
-    public Double div (
-        @PathVariable("numberOne") String numberOne,
-        @PathVariable("numberTwo") String numberTwo
-    ) throws Exception{
-
-        if(!isNumeric(numberOne) || !isNumeric(numberTwo)) throw new UnsupportedOperationException("Coloque um numero");
-     
-        double num1 = Double.parseDouble(numberOne);
-        double num2 = Double.parseDouble(numberTwo);
-
-        if (num2 == 0) { 
-            throw new ArithmeticException("Divisão por zero não é permitida!");
+    // Divisão de números em array
+    @GetMapping("/div")
+    public Double div(@RequestParam double[] numbers) throws Exception {
+        if (numbers.length < 2) {
+            throw new UnsupportedOperationException("É necessário passar ao menos dois números.");
         }
-    
-        return num1 / num2;  
+        validateNumbers(numbers);
+
+        double result = numbers[0];
+        for (int i = 1; i < numbers.length; i++) {
+            if (numbers[i] == 0) {
+                throw new UnsupportedOperationException("Divisão por zero não é permitida!");
+            }
+            result /= numbers[i];
+        }
+        return result;
     }
 
-     @GetMapping("/average")
+    // Média de números em array
+    @GetMapping("/average")
     public Double average(@RequestParam double[] numbers) throws Exception {
         if (numbers.length == 0) {
-            throw new IllegalArgumentException("O array não pode estar vazio.");
+            throw new UnsupportedOperationException("O array não pode estar vazio.");
         }
+        validateNumbers(numbers);
+        return Arrays.stream(numbers).average().orElseThrow(() -> new UnsupportedOperationException("Erro no cálculo da média"));
+    }
 
-        // Verificando se todos os números são válidos
-        for (double num : numbers) {
-            if (!isValidNumber(num)) {
-                throw new IllegalArgumentException("Coloque um número válido.");
+    // Raiz quadrada de um número
+    @GetMapping("/sqrt")
+    public Double sqrt(@RequestParam double number) throws Exception {
+        if (number < 0) {
+            throw new UnsupportedOperationException("Não pode ser número negativo");
+        }
+        return Math.sqrt(number);
+    }
+
+    // Método auxiliar para validar números no array
+    private void validateNumbers(double[] numbers) {
+        for (int i = 0; i < numbers.length; i++) {
+            numbers[i] = replaceCommaWithDot(numbers[i]);
+            if (Double.isNaN(numbers[i]) || Double.isInfinite(numbers[i])) {
+                throw new UnsupportedOperationException("Todos os números devem ser válidos.");
             }
         }
-
-        double sum = Arrays.stream(numbers).sum();
-        return sum / numbers.length;
     }
 
-    @RequestMapping("/sqrt}")
-    public Double sqrt (
-        @PathVariable("numberOne") String numberOne
-    ) throws Exception{
-        if(!isNumeric(numberOne)) throw new UnsupportedOperationException("Coloque um numero");
-
-        double num1 = Double.parseDouble(numberOne);
-        if(num1 <0) throw new UnsupportedOperationException("Não pode ser numero negativo");
-        return Math.sqrt(num1);   
+    // Método auxiliar para substituir vírgula por ponto
+    private double replaceCommaWithDot(double number) {
+        String numStr = String.valueOf(number);
+        if (numStr.contains(",")) {
+            numStr = numStr.replace(",", ".");
+        }
+        return Double.parseDouble(numStr);
     }
-
-
-
-    private boolean isNumeric(String strNumber){
-        if(strNumber == null || strNumber.isEmpty()) return false;
-
-        String number = strNumber.replace(",", ".");
-        return number.matches("[-+]?[0-9]*\\.?[0-9]+");
-        
-    }
-
-    private boolean isValidNumber(double num) {
-        return !Double.isNaN(num) && !Double.isInfinite(num);
-    }
-
-    
 }
